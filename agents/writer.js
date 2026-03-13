@@ -21,17 +21,15 @@ QUALITY RULES:
 - Each section should be useful and specific.
 - Do not stay generic.
 - Add practical explanations where relevant.
-- Keep the article engaging and readable.
-- Avoid cliches such as:
-  "kapsamlı rehber"
-  "gelin birlikte inceleyelim"
-  "dijital dünyada"
-  "önemli bir yere sahiptir"
+- Use semantic coverage naturally.
+- Include related concepts when helpful.
+- Avoid cliché phrasing.
 
 SEO RULES:
 - Use the primary keyword naturally.
 - Cover the main user intent completely.
-- Use brief guidance for section coverage.
+- Use the brief guidance for section coverage.
+- Include important related terms naturally, not by stuffing.
 - Make the article better than generic first-page content.
 
 OUTPUT FORMAT:
@@ -53,13 +51,14 @@ INSTRUCTIONS:
 - Respect tone if provided.
 - Respect word count target if provided.
 - If an outline exists in the input, follow it.
+- Use semantic terms and related entities naturally.
 - Write a complete article, not notes.
 `;
 
   const response = await callClaude({
     system,
     user,
-    maxTokens: 2200
+    maxTokens: 2600
   });
 
   const text = response.trim();

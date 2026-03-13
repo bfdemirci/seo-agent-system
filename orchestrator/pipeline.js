@@ -7,6 +7,7 @@ const { runFactChecker } = require("../agents/factChecker");
 const { runEditor } = require("../agents/editor");
 const { runSeoOptimizer } = require("../agents/seoOptimizer");
 const { runSerpAnalyzer } = require("../agents/serpAnalyzer");
+const { runContentGap } = require("../agents/contentGap");
 const { exportToCSV } = require("../utils/exportCsv");
 
 async function runPipeline(input) {
@@ -15,7 +16,19 @@ async function runPipeline(input) {
   const plannerOutput = await runPlanner(input);
   const researchOutput = await runResearch(input, plannerOutput);
   const serpOutput = await runSerpAnalyzer(input, plannerOutput, researchOutput);
-  const briefOutput = await runBrief(input, plannerOutput, researchOutput, serpOutput);
+  const contentGapOutput = await runContentGap(
+    input,
+    plannerOutput,
+    researchOutput,
+    serpOutput
+  );
+  const briefOutput = await runBrief(
+    input,
+    plannerOutput,
+    researchOutput,
+    serpOutput,
+    contentGapOutput
+  );
   const writerOutput = await runWriter(input, briefOutput);
   const claimExtractorOutput = await runClaimExtractor(writerOutput);
   const factCheckerOutput = await runFactChecker(claimExtractorOutput);
@@ -32,6 +45,7 @@ async function runPipeline(input) {
     planner: plannerOutput,
     research: researchOutput,
     serp: serpOutput,
+    contentGap: contentGapOutput,
     brief: briefOutput,
     writer: writerOutput,
     claimExtractor: claimExtractorOutput,

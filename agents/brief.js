@@ -1,7 +1,7 @@
 const { callClaude } = require("../anthropic");
 const { parseJsonResponse } = require("../utils/parseJsonResponse");
 
-async function runBrief(input, plannerOutput, researchOutput, serpOutput) {
+async function runBrief(input, plannerOutput, researchOutput, serpOutput, contentGapOutput) {
   const system = `
 ROLE: Senior SEO content brief strategist.
 
@@ -18,7 +18,7 @@ RULES:
 - Do not write the article.
 - Do not produce fluff.
 - Build a brief that improves article quality and search intent match.
-- Use the planner, research, and SERP outputs together.
+- Use planner, research, SERP, and semantic coverage data together.
 - Prioritize practical article guidance over theory.
 - Keep lists concise but useful.
 
@@ -34,15 +34,17 @@ OUTPUT:
   "recommended_sections": [],
   "questions_to_answer": [],
   "seo_notes": [],
+  "semantic_terms_to_include": [],
+  "entity_coverage_notes": [],
   "cta_direction": ""
 }
 `;
 
   const user = `
-Topic: ${input.topic}
-Keyword: ${input.keyword}
-Language: ${input.language}
-Country: ${input.country}
+Topic: ${input.topic || ""}
+Keyword: ${input.keyword || ""}
+Language: ${input.language || ""}
+Country: ${input.country || ""}
 Tone: ${input.tone || "informative"}
 Word count target: ${input.word_count || 1200}
 
@@ -55,16 +57,20 @@ ${JSON.stringify(researchOutput, null, 2)}
 SERP output:
 ${JSON.stringify(serpOutput, null, 2)}
 
+Content gap output:
+${JSON.stringify(contentGapOutput, null, 2)}
+
 Additional guidance:
 - Make the brief useful for writing a better article than generic competitors.
-- Use likely user questions and section priorities.
+- Use user intent, likely PAA questions, section priorities, and semantic coverage.
+- Tell the writer what concepts and related terms should naturally appear.
 - Keep the article focused, helpful, and structured.
 `;
 
   const response = await callClaude({
     system,
     user,
-    maxTokens: 1200
+    maxTokens: 1400
   });
 
   return parseJsonResponse(response, "Brief JSON");

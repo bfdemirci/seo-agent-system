@@ -1,61 +1,63 @@
 const { callClaude } = require("../anthropic");
+const { parseJsonResponse } = require("../utils/parseJsonResponse");
 
-async function runContentGap(input, researchOutput, serpAnalyzerOutput, briefOutput) {
+async function runContentGap(input, plannerOutput, researchOutput, serpOutput) {
   const system = `
-ROLE: You are the Content Gap Agent.
+ROLE: Senior SEO semantic strategist.
 
-OBJECTIVE:
-Identify missing subtopics and opportunities that should be covered in the article.
+GOAL:
+Generate semantic coverage guidance for the article so it covers related concepts, entities, and missing subtopics.
+
+IMPORTANT:
+- Return ONLY valid JSON.
+- No markdown fences.
+- Be concise, practical, and SEO-focused.
+- Focus on semantic completeness, not fluff.
 
 RULES:
-- Return ONLY JSON.
-- Do not invent competitor facts.
-- Use the given context only.
-- Focus on practical content gaps.
+- Do not invent fake facts or statistics.
+- Keep each item short.
+- Maximum 12 items per list.
 
 OUTPUT:
 {
+  "semantic_keywords": [],
+  "related_entities": [],
+  "secondary_topics": [],
   "missing_subtopics": [],
-  "missing_questions": [],
-  "competitor_advantages": [],
-  "content_improvement_ideas": []
+  "term_usage_notes": []
 }
 `;
 
   const user = `
-Topic: ${input.topic}
-Keyword: ${input.keyword}
-Language: ${input.language}
-Country: ${input.country}
+Topic: ${input.topic || ""}
+Keyword: ${input.keyword || ""}
+Language: ${input.language || ""}
+Country: ${input.country || ""}
+
+Planner output:
+${JSON.stringify(plannerOutput, null, 2)}
 
 Research output:
 ${JSON.stringify(researchOutput, null, 2)}
 
-SERP analyzer output:
-${JSON.stringify(serpAnalyzerOutput, null, 2)}
+SERP output:
+${JSON.stringify(serpOutput, null, 2)}
 
-Brief output:
-${JSON.stringify(briefOutput, null, 2)}
+Additional guidance:
+- Identify related phrases the article should naturally include.
+- Identify entities, institutions, concepts, or product types relevant to the query.
+- Identify missing subtopics generic competitors often skip.
+- Focus on search intent and topical completeness.
 `;
 
   const response = await callClaude({
     system,
     user,
-    maxTokens: 1500
+    maxTokens: 1000
   });
 
-  const clean = response
-    .replace(/```json/g, "")
-    .replace(/```/g, "")
-    .trim();
-
-  try {
-    return JSON.parse(clean);
-  } catch (err) {
-    console.log("Content Gap JSON parse hatası:");
-    console.log(clean);
-    throw err;
-  }
+  return parseJsonResponse(response, "Content Gap JSON");
 }
 
 module.exports = { runContentGap };
