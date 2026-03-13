@@ -92,6 +92,7 @@ export default function App() {
   };
 
   const article =
+    result?.finalizer?.final_article_markdown ||
     result?.editor?.revised_article_markdown ||
     result?.writer?.article_markdown ||
     "";
