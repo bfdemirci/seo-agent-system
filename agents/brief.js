@@ -1,4 +1,5 @@
 const { callClaude } = require("../anthropic");
+const { parseJsonResponse } = require("../utils/parseJsonResponse");
 
 async function runBrief(input, plannerOutput, researchOutput, serpOutput) {
   const system = `
@@ -66,18 +67,7 @@ Additional guidance:
     maxTokens: 1200
   });
 
-  const clean = response
-    .replace(/```json/g, "")
-    .replace(/```/g, "")
-    .trim();
-
-  try {
-    return JSON.parse(clean);
-  } catch (err) {
-    console.log("Brief JSON parse hatası:");
-    console.log(clean);
-    throw err;
-  }
+  return parseJsonResponse(response, "Brief JSON");
 }
 
 module.exports = { runBrief };

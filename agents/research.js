@@ -1,4 +1,5 @@
 const { callClaude } = require("../anthropic");
+const { parseJsonResponse } = require("../utils/parseJsonResponse");
 
 async function runResearch(input, plannerOutput) {
   const system = `
@@ -39,18 +40,7 @@ ${JSON.stringify(plannerOutput, null, 2)}
     maxTokens: 700
   });
 
-  const clean = response
-    .replace(/```json/g, "")
-    .replace(/```/g, "")
-    .trim();
-
-  try {
-    return JSON.parse(clean);
-  } catch (err) {
-    console.log("Research JSON parse hatası:");
-    console.log(clean);
-    throw err;
-  }
+  return parseJsonResponse(response, "Research JSON");
 }
 
 module.exports = { runResearch };
