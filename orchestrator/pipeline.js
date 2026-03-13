@@ -3,6 +3,7 @@ const { runResearch } = require("../agents/research");
 const { runBrief } = require("../agents/brief");
 const { runWriter } = require("../agents/writer");
 const { runEditor } = require("../agents/editor");
+const { runFinalizer } = require("../agents/finalizer");
 const { runSeoOptimizer } = require("../agents/seoOptimizer");
 const { exportToCSV } = require("../utils/exportCsv");
 
@@ -65,9 +66,18 @@ async function runPipeline(input) {
     "editor"
   );
 
+  const finalizerOutput = await safeRun(
+    runFinalizer,
+    [editorOutput],
+    {
+      final_article_markdown: editorOutput.revised_article_markdown || ""
+    },
+    "finalizer"
+  );
+
   const seoOutput = await safeRun(
     runSeoOptimizer,
-    [input, { revised_article_markdown: editorOutput.revised_article_markdown }],
+    [input, { article_markdown: finalizerOutput.final_article_markdown }],
     {
       seo_title: "",
       meta_description: "",
@@ -82,6 +92,7 @@ async function runPipeline(input) {
   exportToCSV({
     writer: writerOutput,
     editor: editorOutput,
+    finalizer: finalizerOutput,
     seo: seoOutput
   });
 
@@ -91,6 +102,7 @@ async function runPipeline(input) {
     brief: briefOutput,
     writer: writerOutput,
     editor: editorOutput,
+    finalizer: finalizerOutput,
     seo: seoOutput
   };
 }
