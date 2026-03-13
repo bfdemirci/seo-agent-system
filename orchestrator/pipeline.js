@@ -7,6 +7,54 @@ const { runFactChecker } = require("../agents/factChecker");
 const { runEditor } = require("../agents/editor");
 const { runSeoOptimizer } = require("../agents/seoOptimizer");
 const { runSerpAnalyzer } = require("../agents/serpAnalyzer");
+Last login: Fri Mar 13 18:20:22 on ttys000
+b.fatihdemirci@BFatih-MacBook-Air ~ % cd ~/seo-agent-system
+nano orchestrator/pipeline.js
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  UW PICO 5.09                 File: orchestrator/pipeline.js                   
+
+const { runPlanner } = require("../agents/planner");
+const { runResearch } = require("../agents/research");
+const { runBrief } = require("../agents/brief");
+const { runWriter } = require("../agents/writer");
+const { runClaimExtractor } = require("../agents/claimExtractor");
+const { runFactChecker } = require("../agents/factChecker");
+const { runEditor } = require("../agents/editor");
+const { runSeoOptimizer } = require("../agents/seoOptimizer");
+const { runSerpAnalyzer } = require("../agents/serpAnalyzer");
+const { exportToCSV } = require("../utils/exportCsv");
+  
+async function runPipeline(input) {
+  console.log("Pipeline başlıyor...\n");
+
+  console.log("Planner çalışıyor...");
+  const plannerOutput = await runPlanner(input);
+  console.log("Planner tamamlandı.\n");
+
+  console.log("Research çalışıyor...");
+
+^G Get Help  ^O WriteOut  ^R Read File ^Y Prev Pg   ^K Cut Text  ^C Cur Pos   
+^X Exit      ^J Justify   ^W Where is  ^V Next Pg   ^U UnCut Text^T To Spell  
 const { exportToCSV } = require("../utils/exportCsv");
 
 async function runPipeline(input) {
@@ -20,7 +68,7 @@ async function runPipeline(input) {
   const researchOutput = await runResearch(input, plannerOutput);
   console.log("Research tamamlandı.\n");
 console.log("SERP Analyzer çalışıyor...");
-const serp = await runSerpAnalyzer(input, planner, research);
+const serp = await runSerpAnalyzer(input, plannerOutput, researchOutput);
 console.log("SERP Analyzer tamamlandı.");
 
   console.log("Brief çalışıyor...");
