@@ -1,6 +1,7 @@
 const { callClaude } = require("../anthropic");
 
 async function runWriter(input, briefOutput) {
+
   const targetWordCount = Number(input.word_count) || 1200;
   const minimumWordCount = Math.max(900, Math.floor(targetWordCount * 0.85));
 
@@ -17,53 +18,54 @@ async function runWriter(input, briefOutput) {
   const system = `
 You are a professional Turkish SEO content writer.
 
-Your job is to write a strong, useful, search-intent-matching article in Turkish Markdown.
+Your job is to write a high quality SEO article that feels like a complete guide.
 
 STRICT RULES:
-- The article MUST be at least the minimum word count requested.
+
+- The article MUST reach the minimum word count.
 - Do not stop early.
-- Expand sections with useful detail, examples, comparisons, and explanations.
-- Do not use filler or empty repetition.
-- Write naturally and clearly.
+- Expand sections with real explanations and examples.
+- Avoid shallow sections.
+- Avoid repetition.
+- Write naturally in Turkish.
+
+STRUCTURE RULES:
+
 - Use exactly one H1 title.
-- Use at least 4 H2 headings.
-- Use at least 2 meaningful H3 headings.
-- H3 headings must feel natural, not forced.
-- The introduction must answer the search query directly.
-- The article should feel better than a generic first-page SEO article.
- 
-SERP-INTELLIGENCE RULES:
-- Match likely user intent closely.
-- Cover the obvious subtopics a user expects to see.
-- Include comparison, process, definition, benefit, and caution angles when relevant.
-- Answer likely follow-up questions naturally inside the article.
-- Make the article feel complete, not shallow.
-- If recommended sections are too few, intelligently add missing sections users expect.
-- Choose sections that naturally fit the topic.
-- For informational topics include definition, explanation and context.
-- For practical topics include steps, process or how it works.
-- For decision topics include comparison, advantages and disadvantages.
-- Never force irrelevant sections.
-- Ensure the article structure feels complete like a strong first-page SEO article.
+- Use multiple H2 sections.
+- Use H3 subsections when useful.
+- Large sections should be divided into logical subsections.
+
+INTRODUCTION RULES:
+
+The introduction must:
+- clearly define the topic
+- explain why the topic matters
+- briefly explain what the reader will learn
 
 CONTENT DEPTH RULES:
-- Do not write shallow sections.
-- Each H2 section should contain meaningful explanation.
-- Add examples when useful.
-- Add comparison when relevant.
-- Add process or step explanations when relevant.
-- Add practical insights or use cases when possible.
-- Avoid short thin sections.
-- Ensure sections feel substantial and useful.
 
-OUTPUT FORMAT EXACTLY:
+- Each section must contain meaningful explanation.
+- Add examples when helpful.
+- Add comparisons when relevant.
+- Add step explanations when relevant.
+- Avoid thin sections.
 
-TITLE: <title>
+SERP INTELLIGENCE:
 
-WORD_COUNT: <number>
+- If sections are missing, add logical sections users expect.
+- Ensure the article feels like a complete SEO guide.
 
-ARTICLE_MARKDOWN:
-<full markdown article>
+COMPARISON:
+
+When relevant include:
+- advantages vs disadvantages
+- comparisons
+- alternative approaches
+
+GOAL:
+
+Write an authoritative, helpful and comprehensive article.
 `;
 
   const user = `
@@ -81,23 +83,8 @@ ${primaryIntent}
 Recommended sections:
 ${JSON.stringify(sections, null, 2)}
 
-Questions to answer:
+Questions:
 ${JSON.stringify(questions, null, 2)}
-
-Instructions:
-- Make the article substantial enough to meet the minimum acceptable word count.
-- If the topic is broad, add useful subsections.
-- If the topic is informational, explain key concepts clearly.
-- Use practical detail instead of fluff.
-- If relevant, include:
-  - what it is
-  - how it works
-  - advantages
-  - disadvantages
-  - who it is suitable for
-  - process / steps
-  - frequently asked questions
-- Prefer depth and clarity over decoration.
 `;
 
   const response = await callClaude({
@@ -119,6 +106,7 @@ Instructions:
   }
 
   const article = articleMatch[1].trim();
+
   const detectedWordCount =
     wordCountMatch?.[1]
       ? Number(wordCountMatch[1])
