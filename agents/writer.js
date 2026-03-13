@@ -60,7 +60,7 @@ Instructions:
   const response = await callClaude({
     system,
     user,
-    maxTokens: 2600
+    maxTokens: 3500
   });
 
   const text = response.trim();
