@@ -1,9 +1,8 @@
 const { callClaude } = require("../anthropic");
 
 async function runWriter(input, briefOutput) {
-
   const targetWordCount = Number(input.word_count) || 1200;
-  const minimumWordCount = Math.max(1000, Math.floor(targetWordCount * 0.9));
+  const minimumWordCount = Math.max(1100, Math.floor(targetWordCount * 0.92));
 
   const sections = Array.isArray(briefOutput?.recommended_sections)
     ? briefOutput.recommended_sections
@@ -18,53 +17,49 @@ async function runWriter(input, briefOutput) {
   const system = `
 You are a professional Turkish SEO content writer.
 
-Write a high quality Turkish article that feels like it was written by a human expert.
+Write a high quality article in Turkish Markdown.
+
+LANGUAGE RULES
+- Write ONLY in Turkish.
+- Do not use English, Chinese, or any other language in the article.
+- If a technical term is commonly used in English, explain it in Turkish.
+- Do not mix languages in headings or paragraphs.
 
 WRITING STYLE
+- Write naturally, like a human editor.
+- Avoid generic AI phrases.
+- Avoid repetition.
+- Use clear and strong sentences.
 
-- Write naturally in Turkish
-- Avoid AI sounding phrases
-- Use clear and confident language
+STRICT RULES
+- The article MUST reach the minimum word count.
+- Do not finish early.
+- If the article is too short, continue by adding new relevant sections.
+- Expand sections with examples, explanations, comparisons and practical detail.
 
 STRUCTURE
-
-- Use Markdown headings
-- One H1 title
-- Multiple H2 sections
-- Use H3 subsections where useful
+- Use Markdown headings.
+- Use one H1 title.
+- Use at least 5 H2 headings.
+- Use H3 headings where useful.
 
 INTRODUCTION
-
 The introduction must:
 - define the topic
 - explain why it matters
 - explain what the reader will learn
 
 CONTENT DEPTH
+- Avoid shallow sections.
+- Add examples when useful.
+- Add comparisons when relevant.
+- Add explanation instead of filler text.
 
-- Avoid shallow sections
-- Add examples when useful
-- Add comparisons when relevant
+SERP STRUCTURE
+- If sections are missing, add logical sections users expect.
 
-ENTITY COVERAGE
-
-When relevant include important:
-- concepts
-- technologies
-- organizations
-- people
-- related topics
-
-This helps create a richer and more authoritative article.
-
-WORD COUNT RULE
-
-If the article is shorter than requested,
-expand sections with more explanation
-until the minimum word count is reached.
-If the article is still shorter than the minimum word count,
-create additional relevant sections and continue writing
-until the word count requirement is satisfied.
+WORD COUNT ENFORCEMENT
+- If the article is still below the minimum word count, add additional relevant sections and continue writing until the minimum is reached.
 
 OUTPUT FORMAT
 
@@ -98,7 +93,7 @@ ${JSON.stringify(questions, null, 2)}
   const response = await callClaude({
     system,
     user,
-    maxTokens: 3500
+    maxTokens: 4200
   });
 
   const text = response.trim();
