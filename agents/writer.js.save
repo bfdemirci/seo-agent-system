@@ -1,0 +1,60 @@
+const { callClaude } = require("../anthropic");
+
+ync function runWriter(input, briefOutput) {
+  const system = `
+ROLE: You are the Writer Agent.
+
+OBJECTIVE:
+Write a structured SEO article draft based on the content brief.
+
+RULES:
+- Do NOT return JSON.
+- Return in this exact format:
+
+TITLE: <title here>
+WORD_COUNT: <number here>
+ARTICLE_MARKDOWN:
+<full markdown article here>
+
+- Keep the article concise but complete.
+- Target length: 900-1200 words.
+- Do not add fake facts.
+- Do not use markdown code fences unless absolutely necessary.
+`;
+
+  const user = `
+Topic: ${input.topic}
+Primary keyword: ${input.keyword}
+Language: ${input.language}
+Country: ${input.country}
+
+Brief output:
+${JSON.stringify(briefOutput, null, 2)}
+`;
+
+  const response = await callClaude({
+    system,
+    user,
+    maxTokens: 1800
+  });
+
+  const text = response.trim();
+
+  const titleMatch = text.match(/TITLE:\s*(.+)/);
+  const wordCountMatch = text.match(/WORD_COUNT:\s*(\d+)/);
+  const articleMatch = text.match(/ARTICLE_MARKDOWN:\s*([\s\S]*)/);
+
+  if (!titleMatch || !articleMatch) {
+    console.log("Writer parse hatası:");
+    console.log(text);
+    throw new Error("Writer output format geçersiz");
+  }
+
+  return {
+    title: titleMatch[1].trim(),
+    article_markdown: articleMatch[1].trim(),
+    word_count: wordCountMatch ? Number(wordCountMatch[1]) : 0
+  };
+}
+
+module.exports = { runWriter };

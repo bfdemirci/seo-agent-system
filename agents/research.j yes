@@ -1,0 +1,52 @@
+const { callClaude } = require("../anthropic");
+
+async function runResearch(input, plannerOutput) {
+  const system = `
+ROLE: You are the Research Agent.
+
+OBJECTIVE:
+Research the topic based on the planner output and prepare structured SEO research.
+Do NOT write the article.
+
+RULES:
+Return ONLY JSON.
+
+OUTPUT:
+{
+  "competitor_angles": [],
+  "important_entities": [],
+  "questions_people_ask": [],
+  "content_gaps": []
+}
+`;
+
+  const user = `
+Topic: ${input.topic}
+Primary keyword: ${input.keyword}
+Language: ${input.language}
+Country: ${input.country}
+
+Planner output:
+${JSON.stringify(plannerOutput, null, 2)}
+`;
+
+  const response = await callClaude({
+    system,
+    user,
+    maxTokens: 1200
+  });
+
+  const clean = response
+    .replace(/```json/g, "")
+    .replace(/```/g, "")
+    .trim();
+
+  try {
+  return JSON.parse(clean);
+} catch (error) {
+  console.error("Research JSON parse hatası:");
+  console.error(clean);
+  throw error;
+}}
+
+module.exports = { runResearch };

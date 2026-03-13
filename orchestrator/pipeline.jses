@@ -1,0 +1,48 @@
+const { runPlanner } = require("../agents/planner");
+const { runResearch } = require("../agents/research");
+const { runBrief } = require("../agents/brief");
+const { runWriter } = require("../agents/writer");
+const { runClaimExtractor } = require("../agents/claimExtractor");
+
+async function runPipeline(input) {
+  console.log("Pipeline başlıyor...\n");
+
+  console.log("Planner çalışıyor...");
+  const plannerOutput = await runPlanner(input);
+  console.log("Planner sonucu:");
+  console.log(plannerOutput);
+  console.log("");
+
+  console.log("Research çalışıyor...");
+  const researchOutput = await runResearch(input, plannerOutput);
+  console.log("Research sonucu:");
+  console.log(researchOutput);
+  console.log("");
+
+  console.log("Brief çalışıyor...");
+  const briefOutput = await runBrief(input, plannerOutput, researchOutput);
+  console.log("Brief sonucu:");
+  console.log(briefOutput);
+  console.log("");
+
+  console.log("Writer çalışıyor...");
+  const writerOutput = await runWriter(input, briefOutput);
+  console.log("Writer sonucu:");
+  console.log(writerOutput);
+  console.log("");
+console.log("Claim Extractor çalışıyor...");
+const claimExtractorOutput = await runClaimExtractor(writerOutput);
+console.log("Claim Extractor sonucu:");
+console.log(claimExtractorOutput);
+console.log("");
+
+  return {
+    planner: plannerOutput,
+    research: researchOutput,
+    brief: briefOutput,
+    writer: writerOutput
+claimExtractor: claimExtractorOutput
+  };
+}
+
+module.exports = { runPipeline };

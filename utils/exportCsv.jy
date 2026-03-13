@@ -1,0 +1,31 @@
+const fs = require("fs");
+
+function exportToCSV(data) {
+  const headers = [
+    "title",
+    "seo_title",
+    "meta_description",
+    "slug",
+    "article",
+    "faq_questions",
+    "internal_links"
+  ];
+
+  const row = [
+    data.writer.title,
+    data.seo.seo_title,
+    data.seo.meta_description,
+    data.seo.slug,
+    data.editor.revised_article_markdown.replace(/\n/g, " "),
+    (data.seo.faq_questions || []).join(" | "),
+    (data.seo.internal_link_suggestions || []).join(" | ")
+  ];
+
+  const csv = headers.join(",") + "\n" + row.join(",");
+
+  fs.writeFileSync("output.csv", csv);
+
+  console.log("CSV oluşturuldu: output.csv");
+}
+
+module.exports = { exportToCSV };

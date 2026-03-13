@@ -1,0 +1,16 @@
+node_modules
+.env
+.env.*
+*.env
+output.csv
+batch_output.csv
+keywords.csvy
+keywords.csves
+*.bak
+*.jy
+*.jyes
+*.jses
+.envey
+.envy
+.enves
+.env.save
