@@ -3,7 +3,7 @@ const { callClaude } = require("../anthropic");
 async function runWriter(input, briefOutput) {
 
   const targetWordCount = Number(input.word_count) || 1200;
-  const minimumWordCount = Math.max(900, Math.floor(targetWordCount * 0.85));
+  const minimumWordCount = Math.max(1000, Math.floor(targetWordCount * 0.9));
 
   const sections = Array.isArray(briefOutput?.recommended_sections)
     ? briefOutput.recommended_sections
@@ -18,54 +18,54 @@ async function runWriter(input, briefOutput) {
   const system = `
 You are a professional Turkish SEO content writer.
 
-Your job is to write a high quality SEO article that feels like a complete guide.
+Write a complete SEO article in Turkish Markdown.
 
-STRICT RULES:
+STRICT RULES
 
 - The article MUST reach the minimum word count.
-- Do not stop early.
-- Expand sections with real explanations and examples.
-- Avoid shallow sections.
-- Avoid repetition.
-- Write naturally in Turkish.
+- If the article is too short, continue expanding sections.
+- Do NOT finish early.
+- Expand sections with useful explanations, examples and comparisons.
 
-STRUCTURE RULES:
+STRUCTURE
 
-- Use exactly one H1 title.
-- Use multiple H2 sections.
-- Use H3 subsections when useful.
-- Large sections should be divided into logical subsections.
+- Use Markdown headings.
+- One H1 title.
+- Multiple H2 sections.
+- Use H3 subsections where useful.
 
-INTRODUCTION RULES:
+INTRODUCTION
 
 The introduction must:
-- clearly define the topic
-- explain why the topic matters
-- briefly explain what the reader will learn
+- define the topic
+- explain why it matters
+- explain what the reader will learn.
 
-CONTENT DEPTH RULES:
+CONTENT DEPTH
 
-- Each section must contain meaningful explanation.
-- Add examples when helpful.
-- Add comparisons when relevant.
-- Add step explanations when relevant.
 - Avoid thin sections.
+- Add examples when useful.
+- Add comparisons when relevant.
+- Add explanation instead of filler.
 
-SERP INTELLIGENCE:
+SERP STRUCTURE
 
-- If sections are missing, add logical sections users expect.
-- Ensure the article feels like a complete SEO guide.
+If sections are missing, add logical sections users expect.
 
-COMPARISON:
+WORD COUNT RULE
 
-When relevant include:
-- advantages vs disadvantages
-- comparisons
-- alternative approaches
+If the article is shorter than the requested word count,
+expand the sections with additional explanations,
+examples, comparisons or subsections until the minimum is reached.
 
-GOAL:
+OUTPUT FORMAT
 
-Write an authoritative, helpful and comprehensive article.
+TITLE: <title>
+
+WORD_COUNT: <number>
+
+ARTICLE_MARKDOWN:
+<full markdown article>
 `;
 
   const user = `
