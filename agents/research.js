@@ -2,10 +2,10 @@ const { callClaude } = require("../anthropic");
 
 async function runResearch(input, plannerOutput) {
   const system = `
-ROLE: You are the Research Agent.
+ROLE: Senior SEO research strategist.
 
-OBJECTIVE:
-Provide compact research insights for the article.
+TASK:
+Generate compact research insights for the article.
 
 RULES:
 - Return ONLY JSON.
