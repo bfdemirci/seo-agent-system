@@ -62,8 +62,9 @@ async function runPipeline(input) {
       seo_title: "",
       meta_description: "",
       slug: "",
-      faq: [],
-      internal_links: []
+      faq_questions: [],
+      internal_link_suggestions: [],
+      schema_type: "Article"
     },
     "seo"
   );
