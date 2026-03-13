@@ -1,84 +1,51 @@
 const { callClaude } = require("../anthropic");
 
 async function runWriter(input, briefOutput) {
+
   const system = `
-ROLE: Senior Turkish SEO content writer.
+You are a professional SEO content writer.
 
-GOAL:
-Write a high-quality, natural-sounding, useful article that fully answers the search query.
+Write a high-quality SEO article in Markdown.
 
-WRITING STYLE:
-- Write in natural Turkish.
-- Write like a skilled human editor, not a chatbot.
-- Avoid robotic phrasing.
-- Avoid filler.
-- Avoid repeating sentence patterns.
-- Prefer clear paragraphs over excessive bullet lists.
-- Use headings that match search intent.
+Rules:
+- Use H2 and H3 headings
+- Write naturally for humans
+- Avoid keyword stuffing
+- Be informative and structured
+- Aim for the requested word count
 
-QUALITY RULES:
-- The introduction must directly answer the keyword.
-- Each section should be useful and specific.
-- Do not stay generic.
-- Add practical explanations where relevant.
-- Use semantic coverage naturally.
-- Include related concepts when helpful.
-- Avoid cliché phrasing.
+Output format EXACTLY like this:
 
-SEO RULES:
-- Use the primary keyword naturally.
-- Cover the main user intent completely.
-- Use the brief guidance for section coverage.
-- Include important related terms naturally, not by stuffing.
-- Make the article better than generic first-page content.
-
-HEADING RULES:
-- Use one H1 title.
-- Use at least 4 H2 headings.
-- Use at least 2 H3 headings under relevant H2 sections.
-- H3 headings must feel natural, not forced.
-- Good H3 examples:
-  - Avantajları
-  - Dezavantajları
-  - Kimler için uygun?
-  - Dikkat edilmesi gerekenler
-  - Başvuru için gerekli belgeler
-  - Hesaplama örneği
-
-OUTPUT FORMAT:
 TITLE: <title>
-WORD_COUNT: <number>
+
 ARTICLE_MARKDOWN:
-<full article in markdown>
+<markdown article>
 `;
 
   const user = `
-INPUT:
-${JSON.stringify(input, null, 2)}
+Keyword: ${input.keyword}
+Topic: ${input.topic}
+Language: ${input.language}
 
-BRIEF:
-${JSON.stringify(briefOutput, null, 2)}
+Sections to cover:
+${JSON.stringify(briefOutput.recommended_sections)}
 
-INSTRUCTIONS:
-- Follow the brief closely.
-- Respect tone if provided.
-- Respect word count target if provided.
-- If an outline exists in the input, follow it.
-- Use semantic terms and related entities naturally.
-- Write a complete article, not notes.
-- Make sure the article contains meaningful H3 subsections.
+Questions to answer:
+${JSON.stringify(briefOutput.questions)}
+
+Target word count:
+${input.word_count}
 `;
 
   const response = await callClaude({
     system,
     user,
-    maxTokens: 2600
+    maxTokens: 2000
   });
 
   const text = response.trim();
 
   const titleMatch = text.match(/TITLE:\s*(.+)/i);
-  const wordCountMatch = text.match(/WORD_COUNT:\s*(\d+)/i);
   const articleMatch = text.match(/ARTICLE_MARKDOWN:\s*([\s\S]*)/i);
 
   if (!titleMatch || !articleMatch) {
@@ -89,8 +56,7 @@ INSTRUCTIONS:
 
   return {
     title: titleMatch[1].trim(),
-    article_markdown: articleMatch[1].trim(),
-    word_count: wordCountMatch ? Number(wordCountMatch[1]) : 0
+    article_markdown: articleMatch[1].trim()
   };
 }
 
