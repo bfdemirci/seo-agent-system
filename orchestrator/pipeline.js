@@ -2,12 +2,7 @@ const { runPlanner } = require("../agents/planner");
 const { runResearch } = require("../agents/research");
 const { runBrief } = require("../agents/brief");
 const { runWriter } = require("../agents/writer");
-const { runClaimExtractor } = require("../agents/claimExtractor");
-const { runFactChecker } = require("../agents/factChecker");
-const { runEditor } = require("../agents/editor");
 const { runSeoOptimizer } = require("../agents/seoOptimizer");
-const { runSerpAnalyzer } = require("../agents/serpAnalyzer");
-const { runContentGap } = require("../agents/contentGap");
 const { exportToCSV } = require("../utils/exportCsv");
 
 async function runPipeline(input) {
@@ -15,25 +10,15 @@ async function runPipeline(input) {
 
   const plannerOutput = await runPlanner(input);
   const researchOutput = await runResearch(input, plannerOutput);
-  const serpOutput = await runSerpAnalyzer(input, plannerOutput, researchOutput);
-  const contentGapOutput = await runContentGap(
-    input,
-    plannerOutput,
-    researchOutput,
-    serpOutput
-  );
-  const briefOutput = await runBrief(
-    input,
-    plannerOutput,
-    researchOutput,
-    serpOutput,
-    contentGapOutput
-  );
+  const briefOutput = await runBrief(input, plannerOutput, researchOutput);
   const writerOutput = await runWriter(input, briefOutput);
-  const claimExtractorOutput = await runClaimExtractor(writerOutput);
-  const factCheckerOutput = await runFactChecker(claimExtractorOutput);
-  const editorOutput = await runEditor(writerOutput, factCheckerOutput);
-  const seoOutput = await runSeoOptimizer(input, editorOutput);
+  const seoOutput = await runSeoOptimizer(input, {
+    revised_article_markdown: writerOutput.article_markdown
+  });
+
+  const editorOutput = {
+    revised_article_markdown: writerOutput.article_markdown
+  };
 
   exportToCSV({
     writer: writerOutput,
@@ -44,12 +29,8 @@ async function runPipeline(input) {
   return {
     planner: plannerOutput,
     research: researchOutput,
-    serp: serpOutput,
-    contentGap: contentGapOutput,
     brief: briefOutput,
     writer: writerOutput,
-    claimExtractor: claimExtractorOutput,
-    factChecker: factCheckerOutput,
     editor: editorOutput,
     seo: seoOutput
   };
