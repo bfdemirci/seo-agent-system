@@ -1,57 +1,40 @@
 const { callClaude } = require("../anthropic");
 
-async function runBrief(input, plannerOutput, researchOutput) {
+async function runBrief(input, plannerOutput, researchOutput, serpOutput) {
   const system = `
-ROLE: You are the Brief Agent.
+ROLE: Senior SEO content brief strategist.
 
-OBJECTIVE:
-Create a compact SEO content brief for the writer.
+GOAL:
+Create a high-quality article brief that a writer can directly use to produce a strong SEO article.
+
+IMPORTANT:
+- Return ONLY valid JSON.
+- No markdown fences.
+- Keep output practical and directly usable.
+- Focus on article structure, angle, priorities, coverage, and SEO usefulness.
 
 RULES:
-- Do NOT return JSON.
-- Return in this exact format:
+- Do not write the article.
+- Do not produce fluff.
+- Build a brief that improves article quality and search intent match.
+- Use the planner, research, and SERP outputs together.
+- Prioritize practical article guidance over theory.
+- Keep lists concise but useful.
 
-TITLE_OPTIONS:
-- title 1
-- title 2
-- title 3
-
-RECOMMENDED_H1:
-<h1 here>
-
-OUTLINE:
-1. <heading>
-- <subheading>
-- <subheading>
-- <subheading>
-
-2. <heading>
-- <subheading>
-- <subheading>
-- <subheading>
-
-3. <heading>
-- <subheading>
-- <subheading>
-- <subheading>
-
-4. <heading>
-- <subheading>
-- <subheading>
-- <subheading>
-
-5. <heading>
-- <subheading>
-- <subheading>
-- <subheading>
-
-META_DESCRIPTION_DRAFT:
-<meta description here>
-
-- Keep it concise.
-- Maximum 6 outline sections.
-- Maximum 3 subheadings per section.
-- No markdown code fences.
+OUTPUT:
+{
+  "article_goal": "",
+  "search_intent": "",
+  "target_audience": "",
+  "primary_angle": "",
+  "recommended_title_direction": "",
+  "recommended_intro_direction": "",
+  "must_cover_points": [],
+  "recommended_sections": [],
+  "questions_to_answer": [],
+  "seo_notes": [],
+  "cta_direction": ""
+}
 `;
 
   const user = `
@@ -59,73 +42,42 @@ Topic: ${input.topic}
 Keyword: ${input.keyword}
 Language: ${input.language}
 Country: ${input.country}
+Tone: ${input.tone || "informative"}
+Word count target: ${input.word_count || 1200}
 
 Planner output:
 ${JSON.stringify(plannerOutput, null, 2)}
 
 Research output:
 ${JSON.stringify(researchOutput, null, 2)}
+
+SERP output:
+${JSON.stringify(serpOutput, null, 2)}
+
+Additional guidance:
+- Make the brief useful for writing a better article than generic competitors.
+- Use likely user questions and section priorities.
+- Keep the article focused, helpful, and structured.
 `;
 
   const response = await callClaude({
     system,
     user,
-    maxTokens: 700
+    maxTokens: 1200
   });
 
-  const text = response.trim();
+  const clean = response
+    .replace(/```json/g, "")
+    .replace(/```/g, "")
+    .trim();
 
-  const titleBlockMatch = text.match(/TITLE_OPTIONS:\s*([\s\S]*?)RECOMMENDED_H1:/);
-  const h1Match = text.match(/RECOMMENDED_H1:\s*([\s\S]*?)OUTLINE:/);
-  const outlineMatch = text.match(/OUTLINE:\s*([\s\S]*?)META_DESCRIPTION_DRAFT:/);
-  const metaMatch = text.match(/META_DESCRIPTION_DRAFT:\s*([\s\S]*)/);
-
-  if (!titleBlockMatch || !h1Match || !outlineMatch || !metaMatch) {
-    console.log("Brief parse hatası:");
-    console.log(text);
-    throw new Error("Brief output format geçersiz");
+  try {
+    return JSON.parse(clean);
+  } catch (err) {
+    console.log("Brief JSON parse hatası:");
+    console.log(clean);
+    throw err;
   }
-
-  const titleOptions = titleBlockMatch[1]
-    .split("\n")
-    .map(line => line.trim())
-    .filter(line => line.startsWith("- "))
-    .map(line => line.replace(/^- /, "").trim())
-    .filter(Boolean);
-
-  const recommendedH1 = h1Match[1].trim();
-
-  const outlineText = outlineMatch[1].trim();
-  const sections = outlineText.split(/\n(?=\d+\.\s)/);
-
-  const outline = sections
-    .map(section => {
-      const lines = section
-        .split("\n")
-        .map(line => line.trim())
-        .filter(Boolean);
-
-      if (lines.length === 0) return null;
-
-      const heading = lines[0].replace(/^\d+\.\s*/, "").trim();
-      const subheadings = lines
-        .slice(1)
-        .filter(line => line.startsWith("- "))
-        .map(line => line.replace(/^- /, "").trim())
-        .filter(Boolean);
-
-      return { heading, subheadings };
-    })
-    .filter(Boolean);
-
-  const metaDescriptionDraft = metaMatch[1].trim();
-
-  return {
-    title_options: titleOptions,
-    recommended_h1: recommendedH1,
-    outline,
-    meta_description_draft: metaDescriptionDraft
-  };
 }
 
 module.exports = { runBrief };
