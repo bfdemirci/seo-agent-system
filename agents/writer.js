@@ -2,81 +2,71 @@ const { callClaude } = require("../anthropic");
 
 async function runWriter(input, briefOutput) {
   const system = `
-ROLE: Senior Turkish automotive content writer.
+ROLE: Senior Turkish SEO content writer.
 
 GOAL:
-Write a high-quality, natural sounding blog article that fully answers the search query.
+Write a high-quality, natural-sounding, useful article that fully answers the search query.
 
 WRITING STYLE:
-- Write like a professional automotive blogger.
-- Natural Turkish.
-- Clear explanations.
+- Write in natural Turkish.
+- Write like a skilled human editor, not a chatbot.
 - Avoid robotic phrasing.
-- Avoid keyword stuffing.
+- Avoid filler.
 - Avoid repeating sentence patterns.
+- Prefer clear paragraphs over excessive bullet lists.
+- Use headings that match search intent.
 
-ARTICLE STRUCTURE:
-
-1. Introduction
-Start with a strong introductory paragraph that directly answers the search query.
-
-2. Explanation Sections
-Explain the topic step by step using logical sections.
-
-3. Paragraph Quality
-Each section should contain 3–5 full sentences.
-
-4. Readability
-Prefer explanatory paragraphs over bullet lists.
-
-5. Practical Context
-Where appropriate, include small practical explanations or real-world context.
-
-CONTENT RULES:
-
-- Write naturally as if explaining to a reader.
-- Do not write one-sentence paragraphs.
-- Do not repeat the same sentence structure.
-- Avoid filler phrases such as:
-  "otomotiv dünyasında",
-  "kapsamlı rehber",
-  "gelin birlikte inceleyelim".
+QUALITY RULES:
+- The introduction must directly answer the keyword.
+- Each section should be useful and specific.
+- Do not stay generic.
+- Add practical explanations where relevant.
+- Keep the article engaging and readable.
+- Avoid cliches such as:
+  "kapsamlı rehber"
+  "gelin birlikte inceleyelim"
+  "dijital dünyada"
+  "önemli bir yere sahiptir"
 
 SEO RULES:
-
-- Use the keyword naturally.
-- Focus on solving the user's question.
-- Clarity is more important than keyword density.
+- Use the primary keyword naturally.
+- Cover the main user intent completely.
+- Use brief guidance for section coverage.
+- Make the article better than generic first-page content.
 
 OUTPUT FORMAT:
-
 TITLE: <title>
 WORD_COUNT: <number>
 ARTICLE_MARKDOWN:
-<article>
+<full article in markdown>
 `;
 
   const user = `
-Topic: ${input.topic}
-Primary keyword: ${input.keyword}
-Language: ${input.language}
-Country: ${input.country}
+INPUT:
+${JSON.stringify(input, null, 2)}
 
-Brief output:
+BRIEF:
 ${JSON.stringify(briefOutput, null, 2)}
+
+INSTRUCTIONS:
+- Follow the brief closely.
+- Respect tone if provided.
+- Respect word count target if provided.
+- If an outline exists in the input, follow it.
+- Write a complete article, not notes.
 `;
 
   const response = await callClaude({
     system,
     user,
-    maxTokens: 1800
+    maxTokens: 2200
   });
 
   const text = response.trim();
 
-  const titleMatch = text.match(/TITLE:\s*(.+)/);
-  const wordCountMatch = text.match(/WORD_COUNT:\s*(\d+)/);
-  const articleMatch = text.match(/ARTICLE_MARKDOWN:\s*([\s\S]*)/);
+  const titleMatch = text.match(/TITLE:\s*(.+)/i);
+  const wordCountMatch = text.match(/WORD_COUNT:\s*(\d+)/i);
+  const articleMatch = text.match(/ARTICLE_MARKDOWN:\s*([\s\S]*)/i);
 
   if (!titleMatch || !articleMatch) {
     console.log("Writer parse hatası:");
