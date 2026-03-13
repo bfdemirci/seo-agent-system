@@ -1,17 +1,26 @@
 const { callClaude } = require("../anthropic");
+const { parseJsonResponse } = require("../utils/parseJsonResponse");
 
 async function runSeoOptimizer(input, editorOutput) {
   const system = `
-ROLE: You are the SEO Optimizer Agent.
+ROLE: Senior SEO optimizer.
 
-OBJECTIVE:
-Create the final SEO package for the revised article.
+GOAL:
+Generate final SEO assets for the article.
+
+IMPORTANT:
+- Return ONLY valid JSON.
+- No markdown fences.
+- Keep all outputs practical and publishable.
+- FAQ questions should reflect realistic People Also Ask style queries.
+- Internal link suggestions should be specific and useful.
+- Keep Turkish natural.
 
 RULES:
-- Return ONLY JSON.
-- Keep outputs practical and publish-ready.
-- Do NOT invent facts.
-- Focus on on-page SEO.
+- No fake claims.
+- No generic weak FAQ.
+- FAQ should target search intent, comparison intent, cost intent, process intent, and eligibility intent where relevant.
+- Internal links should look like real article ideas.
 
 OUTPUT:
 {
@@ -20,32 +29,34 @@ OUTPUT:
   "slug": "",
   "faq_questions": [],
   "internal_link_suggestions": [],
-  "schema_type": ""
+  "schema_type": "Article"
 }
 `;
 
   const user = `
-Topic: ${input.topic}
-Primary keyword: ${input.keyword}
-Language: ${input.language}
-Country: ${input.country}
+INPUT:
+${JSON.stringify(input, null, 2)}
 
-Revised article:
-${editorOutput.revised_article_markdown}
+EDITOR OUTPUT:
+${JSON.stringify(editorOutput, null, 2)}
+
+GUIDANCE:
+- SEO title should be clickable and natural.
+- Meta description should be compelling and specific.
+- Slug should be short and clean.
+- Generate 6 to 8 strong FAQ questions.
+- Generate 6 to 8 internal link suggestions.
+- FAQ questions should resemble real Google PAA style questions.
+- Internal links should support topical authority.
 `;
 
   const response = await callClaude({
     system,
     user,
-    maxTokens: 2000
+    maxTokens: 1200
   });
 
-  const clean = response
-    .replace(/```json/g, "")
-    .replace(/```/g, "")
-    .trim();
-
-  return JSON.parse(clean);
+  return parseJsonResponse(response, "SEO Optimizer JSON");
 }
 
 module.exports = { runSeoOptimizer };
