@@ -13,20 +13,23 @@ app.use(cors());
 app.use(express.json({ limit: "2mb" }));
 
 app.get("/health", (req, res) => {
-  res.json({
+  res.type("application/json").status(200).send(JSON.stringify({
     ok: true,
     message: "SEO AI API çalışıyor"
-  });
+  }));
 });
 
 app.post("/generate", async (req, res) => {
   try {
-    const keyword = (req.body?.keyword || "").trim();
-    const topic = (req.body?.topic || "").trim() || keyword;
-    const language = (req.body?.language || "tr").trim();
-    const country = (req.body?.country || "TR").trim();
-    const tone = (req.body?.tone || "").trim() || "informative";
-    const word_count = Number(req.body?.word_count) || 1200;
+    const keyword = String(req.body?.keyword || "").trim();
+    const topic = String(req.body?.topic || "").trim() || keyword;
+    const language = String(req.body?.language || "tr").trim();
+    const country = String(req.body?.country || "TR").trim();
+    const tone = String(req.body?.tone || "").trim() || "informative";
+
+    let word_count = Number(req.body?.word_count) || 1200;
+    if (word_count < 800) word_count = 800;
+    if (word_count > 1600) word_count = 1600;
 
     let outline = [];
     if (Array.isArray(req.body?.outline)) {
@@ -34,10 +37,13 @@ app.post("/generate", async (req, res) => {
     }
 
     if (!keyword) {
-      return res.status(400).json({
-        ok: false,
-        error: "keyword zorunludur"
-      });
+      return res
+        .type("application/json")
+        .status(400)
+        .send(JSON.stringify({
+          ok: false,
+          error: "keyword zorunludur"
+        }));
     }
 
     const input = {
@@ -67,18 +73,36 @@ app.post("/generate", async (req, res) => {
 
     const seoScore = calculateSeoScore(safeResult);
 
-    return res.json({
-      ok: true,
-      result: safeResult,
-      seo_score: seoScore
-    });
+    return res
+      .type("application/json")
+      .status(200)
+      .send(JSON.stringify({
+        ok: true,
+        result: safeResult,
+        seo_score: seoScore
+      }));
   } catch (error) {
     console.error("Generate API hatası:", error);
-    return res.status(500).json({
-      ok: false,
-      error: error.message || "Bilinmeyen hata"
-    });
+
+    return res
+      .type("application/json")
+      .status(500)
+      .send(JSON.stringify({
+        ok: false,
+        error: error?.message || "Bilinmeyen hata"
+      }));
   }
+});
+
+app.use((err, req, res, next) => {
+  console.error("Express fallback hatası:", err);
+  return res
+    .type("application/json")
+    .status(500)
+    .send(JSON.stringify({
+      ok: false,
+      error: err?.message || "Sunucu hatası"
+    }));
 });
 
 app.listen(PORT, () => {
