@@ -72,10 +72,23 @@ app.post("/generate", async (req, res) => {
 
     const result = await runPipeline(input);
 
-    return res.json({
-      ok: true,
-      result
-    });
+const safeResult = {
+  ...result,
+  writer: result.writer || {},
+  editor: {
+    ...(result.editor || {}),
+    revised_article_markdown:
+      result.editor?.revised_article_markdown ||
+      result.writer?.article_markdown ||
+      ""
+  },
+  seo: result.seo || {}
+};
+
+return res.json({
+  ok: true,
+  result: safeResult
+});
 
   } catch (error) {
 
