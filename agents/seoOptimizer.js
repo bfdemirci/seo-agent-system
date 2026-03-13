@@ -1,42 +1,49 @@
 const { callClaude } = require("../anthropic");
 const { safeJson } = require("../utils/safeJson");
 
-async function runSeoOptimizer(input, editorOutput) {
+async function runSeoOptimizer(input, article) {
+
   const system = `
 Return ONLY JSON.
 
 {
-  "seo_title": "",
-  "meta_description": "",
-  "slug": "",
-  "faq_questions": [],
-  "internal_link_suggestions": [],
-  "schema_type": "Article"
+ "seo_title": "",
+ "meta_description": "",
+ "slug": "",
+ "faq": [],
+ "internal_links": []
 }
 `;
 
   const user = `
-INPUT:
-${JSON.stringify(input || {}, null, 2)}
+Keyword: ${input.keyword}
+Topic: ${input.topic}
+Language: ${input.language}
 
-EDITOR OUTPUT:
-${JSON.stringify(editorOutput || {}, null, 2)}
+Article:
+${article.revised_article_markdown}
+
+GUIDANCE:
+- SEO title should be clickable and natural
+- Meta description 140–160 characters
+- Slug short and clean
+- Generate 5–7 FAQ questions
+- Generate 5–7 internal link suggestions
 `;
 
   const response = await callClaude({
     system,
     user,
-    maxTokens: 1000
+    maxTokens: 700
   });
 
-  return safeJson(response, {
-    seo_title: "",
-    meta_description: "",
-    slug: "",
-    faq_questions: [],
-    internal_link_suggestions: [],
-    schema_type: "Article"
-  }, "SEO Optimizer JSON");
+  return safeJson(response,{
+    seo_title:"",
+    meta_description:"",
+    slug:"",
+    faq:[],
+    internal_links:[]
+  },"SEO JSON");
 }
 
 module.exports = { runSeoOptimizer };
