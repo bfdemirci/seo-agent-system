@@ -32,6 +32,19 @@ SEO RULES:
 - Include important related terms naturally, not by stuffing.
 - Make the article better than generic first-page content.
 
+HEADING RULES:
+- Use one H1 title.
+- Use at least 4 H2 headings.
+- Use at least 2 H3 headings under relevant H2 sections.
+- H3 headings must feel natural, not forced.
+- Good H3 examples:
+  - Avantajları
+  - Dezavantajları
+  - Kimler için uygun?
+  - Dikkat edilmesi gerekenler
+  - Başvuru için gerekli belgeler
+  - Hesaplama örneği
+
 OUTPUT FORMAT:
 TITLE: <title>
 WORD_COUNT: <number>
@@ -53,6 +66,7 @@ INSTRUCTIONS:
 - If an outline exists in the input, follow it.
 - Use semantic terms and related entities naturally.
 - Write a complete article, not notes.
+- Make sure the article contains meaningful H3 subsections.
 `;
 
   const response = await callClaude({
