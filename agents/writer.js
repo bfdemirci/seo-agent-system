@@ -62,6 +62,9 @@ WORD COUNT RULE
 If the article is shorter than requested,
 expand sections with more explanation
 until the minimum word count is reached.
+If the article is still shorter than the minimum word count,
+create additional relevant sections and continue writing
+until the word count requirement is satisfied.
 
 OUTPUT FORMAT
 
