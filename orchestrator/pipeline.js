@@ -6,6 +6,7 @@ const { runClaimExtractor } = require("../agents/claimExtractor");
 const { runFactChecker } = require("../agents/factChecker");
 const { runEditor } = require("../agents/editor");
 const { runSeoOptimizer } = require("../agents/seoOptimizer");
+const { runSerpAnalyzer } = require("../agents/serpAnalyzer");
 const { exportToCSV } = require("../utils/exportCsv");
 
 async function runPipeline(input) {
@@ -18,10 +19,13 @@ async function runPipeline(input) {
   console.log("Research çalışıyor...");
   const researchOutput = await runResearch(input, plannerOutput);
   console.log("Research tamamlandı.\n");
+console.log("SERP Analyzer çalışıyor...");
+const serp = await runSerpAnalyzer(input, planner, research);
+console.log("SERP Analyzer tamamlandı.");
 
   console.log("Brief çalışıyor...");
-  const briefOutput = await runBrief(input, plannerOutput, researchOutput);
-  console.log("Brief tamamlandı.\n");
+const briefOutput = await runBrief(input, plannerOutput, researchOutput, serp);
+console.log("Brief tamamlandı.\n");
 
   console.log("Writer çalışıyor...");
   const writerOutput = await runWriter(input, briefOutput);
