@@ -31,7 +31,7 @@ STRICT RULES:
 - H3 headings must feel natural, not forced.
 - The introduction must answer the search query directly.
 - The article should feel better than a generic first-page SEO article.
-
+ 
 SERP-INTELLIGENCE RULES:
 - Match likely user intent closely.
 - Cover the obvious subtopics a user expects to see.
@@ -45,6 +45,16 @@ SERP-INTELLIGENCE RULES:
 - For decision topics include comparison, advantages and disadvantages.
 - Never force irrelevant sections.
 - Ensure the article structure feels complete like a strong first-page SEO article.
+
+CONTENT DEPTH RULES:
+- Do not write shallow sections.
+- Each H2 section should contain meaningful explanation.
+- Add examples when useful.
+- Add comparison when relevant.
+- Add process or step explanations when relevant.
+- Add practical insights or use cases when possible.
+- Avoid short thin sections.
+- Ensure sections feel substantial and useful.
 
 OUTPUT FORMAT EXACTLY:
 
