@@ -38,6 +38,13 @@ SERP-INTELLIGENCE RULES:
 - Include comparison, process, definition, benefit, and caution angles when relevant.
 - Answer likely follow-up questions naturally inside the article.
 - Make the article feel complete, not shallow.
+- If recommended sections are too few, intelligently add missing sections users expect.
+- Choose sections that naturally fit the topic.
+- For informational topics include definition, explanation and context.
+- For practical topics include steps, process or how it works.
+- For decision topics include comparison, advantages and disadvantages.
+- Never force irrelevant sections.
+- Ensure the article structure feels complete like a strong first-page SEO article.
 
 OUTPUT FORMAT EXACTLY:
 
