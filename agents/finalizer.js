@@ -1,56 +1,72 @@
 const { callClaude } = require("../anthropic");
 
+function getTail(text, maxChars = 5000) {
+  const str = String(text || "");
+  return str.length > maxChars ? str.slice(-maxChars) : str;
+}
+
 async function runFinalizer(editorOutput) {
+  const fullArticle = String(editorOutput.revised_article_markdown || "");
+  const tail = getTail(fullArticle, 5000);
+
   const system = `
 You are a professional Turkish editor.
 
-Your task is to finalize and complete a Turkish SEO article.
+Your task is to repair ONLY the ending of a Turkish SEO article.
 
 RULES
+- Do not rewrite the whole article.
+- Only complete the unfinished ending if needed.
 - Keep everything in Turkish.
-- If the article is cut off or unfinished, complete it.
-- Focus especially on the ending and conclusion.
-- Do not rewrite the whole article from scratch.
-- Preserve existing headings and structure.
-- If the last section is incomplete, finish that section.
-- Then add a strong conclusion if needed.
-- Make sure the article ends naturally and cleanly.
+- If the article already ends naturally, return it unchanged.
+- If the article is cut off, complete the last unfinished section.
+- Add a short strong conclusion only if necessary.
 - Do not add markdown fences.
 
 OUTPUT FORMAT
 
-FINAL_ARTICLE_MARKDOWN:
-<full finalized markdown article>
+FINAL_ENDING:
+<only the corrected ending text>
 `;
 
   const user = `
-Current article:
+Below is the ending part of an article:
 
-${editorOutput.revised_article_markdown}
+${tail}
 
 Important:
-- Check whether the ending is incomplete.
-- If the article ends abruptly, fix it.
-- Ensure the last section and final conclusion are complete.
+- Return only the corrected ending section.
+- Do not repeat the full article.
+- If the ending is already complete, return it as is.
 `;
 
   const response = await callClaude({
     system,
     user,
-    maxTokens: 2500
+    maxTokens: 1200
   });
 
   const text = response.trim();
-  const articleMatch = text.match(/FINAL_ARTICLE_MARKDOWN:\s*([\s\S]*)/i);
+  const match = text.match(/FINAL_ENDING:\s*([\s\S]*)/i);
 
-  if (!articleMatch) {
+  if (!match) {
     console.log("Finalizer parse hatası:");
     console.log(text);
     throw new Error("Finalizer output format geçersiz");
   }
 
+  const fixedEnding = match[1].trim();
+
+  if (!fixedEnding) {
+    return {
+      final_article_markdown: fullArticle
+    };
+  }
+
+  const prefix = fullArticle.slice(0, Math.max(0, fullArticle.length - tail.length));
+
   return {
-    final_article_markdown: articleMatch[1].trim()
+    final_article_markdown: prefix + fixedEnding
   };
 }
 
