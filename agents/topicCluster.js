@@ -30,9 +30,10 @@ Tone: ${input.tone || "uzman"}
 
 Instructions:
 - Build a topical SEO cluster around the primary keyword.
-- Include 20 to 30 article ideas.
+- Include 12 to 15 article ideas only.
 - Mix informational, commercial, comparison, and practical intent where relevant.
 - Titles must be natural and clickable.
+- Keep titles relatively short.
 - Slugs must be short, lowercase, and hyphenated.
 - Avoid duplicates.
 - Cover beginner, intermediate, and advanced subtopics.
@@ -42,7 +43,7 @@ Instructions:
   const response = await callClaude({
     system,
     user,
-    maxTokens: 2200
+    maxTokens: 3200
   });
 
   return safeJson(
