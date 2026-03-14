@@ -35,12 +35,25 @@ async function copyText(text) {
   }
 }
 
+function getGeneratedArticle(result) {
+  return (
+    result?.finalizer?.final_article_markdown ||
+    result?.editor?.revised_article_markdown ||
+    result?.writer?.article_markdown ||
+    ""
+  );
+}
+
 export default function ClusterPanel() {
   const [keyword, setKeyword] = useState("");
   const [tone, setTone] = useState("uzman");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [cluster, setCluster] = useState(null);
+
+  const [generateLoadingSlug, setGenerateLoadingSlug] = useState("");
+  const [generatedMap, setGeneratedMap] = useState({});
+  const [generateErrorMap, setGenerateErrorMap] = useState({});
 
   const rows = useMemo(() => {
     if (!cluster?.cluster_articles?.length) return [];
@@ -56,7 +69,7 @@ export default function ClusterPanel() {
     ];
   }, [cluster]);
 
-  async function handleGenerate() {
+  async function handleGenerateCluster() {
     if (!keyword.trim()) {
       setError("Anahtar kelime gerekli.");
       return;
@@ -65,6 +78,8 @@ export default function ClusterPanel() {
     setLoading(true);
     setError("");
     setCluster(null);
+    setGeneratedMap({});
+    setGenerateErrorMap({});
 
     try {
       const res = await fetch(`${API_BASE}/api/cluster`, {
@@ -94,6 +109,44 @@ export default function ClusterPanel() {
     }
   }
 
+  async function handleGenerateArticle(item) {
+    const key = item.slug || item.keyword || item.title;
+    setGenerateLoadingSlug(key);
+    setGenerateErrorMap((prev) => ({ ...prev, [key]: "" }));
+
+    try {
+      const res = await fetch(`${API_BASE}/api/generate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          keyword: item.keyword,
+          topic: item.title,
+          tone,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data?.ok) {
+        throw new Error(data?.error || "Makale üretilemedi.");
+      }
+
+      setGeneratedMap((prev) => ({
+        ...prev,
+        [key]: data.result,
+      }));
+    } catch (err) {
+      setGenerateErrorMap((prev) => ({
+        ...prev,
+        [key]: err.message || "Makale üretilemedi.",
+      }));
+    } finally {
+      setGenerateLoadingSlug("");
+    }
+  }
+
   function handleDownloadCsv() {
     if (!rows.length) return;
     const safeKeyword = (cluster?.pillar_keyword || "cluster")
@@ -117,8 +170,8 @@ export default function ClusterPanel() {
       <div style={{ marginBottom: 16 }}>
         <h2 style={{ margin: 0, fontSize: 24 }}>Topic Cluster Oluştur</h2>
         <p style={{ marginTop: 8, opacity: 0.8 }}>
-          Tek anahtar kelimeden içerik kümeleri oluştur. Böylece pillar + alt
-          makale planını tek seferde çıkar.
+          Tek anahtar kelimeden içerik kümeleri oluştur. İstersen listedeki her
+          başlık için direkt makale de üret.
         </p>
       </div>
 
@@ -172,7 +225,7 @@ export default function ClusterPanel() {
         </div>
 
         <button
-          onClick={handleGenerate}
+          onClick={handleGenerateCluster}
           disabled={loading}
           style={{
             height: 46,
@@ -246,107 +299,223 @@ export default function ClusterPanel() {
               gap: 12,
             }}
           >
-            {cluster.cluster_articles?.map((item, idx) => (
-              <div
-                key={`${item.slug}-${idx}`}
-                style={{
-                  padding: 16,
-                  borderRadius: 16,
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  background: "rgba(255,255,255,0.025)",
-                }}
-              >
+            {cluster.cluster_articles?.map((item, idx) => {
+              const key = item.slug || item.keyword || item.title || String(idx);
+              const generated = generatedMap[key];
+              const generateError = generateErrorMap[key];
+              const generatedArticle = getGeneratedArticle(generated);
+
+              return (
                 <div
+                  key={`${item.slug}-${idx}`}
                   style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 12,
-                    alignItems: "flex-start",
+                    padding: 16,
+                    borderRadius: 16,
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    background: "rgba(255,255,255,0.025)",
                   }}
                 >
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 800, fontSize: 17 }}>
-                      {item.title}
-                    </div>
-                    <div style={{ marginTop: 8, opacity: 0.75 }}>
-                      <strong>Keyword:</strong> {item.keyword}
-                    </div>
-                    <div style={{ marginTop: 6, opacity: 0.75 }}>
-                      <strong>Intent:</strong> {item.intent}
-                    </div>
-                    <div style={{ marginTop: 6, opacity: 0.75 }}>
-                      <strong>Slug:</strong> {item.slug}
-                    </div>
-                    <div style={{ marginTop: 6, opacity: 0.75 }}>
-                      <strong>Angle:</strong> {item.angle}
-                    </div>
-                  </div>
-
                   <div
                     style={{
                       display: "flex",
-                      flexDirection: "column",
-                      gap: 8,
-                      minWidth: 140,
+                      justifyContent: "space-between",
+                      gap: 12,
+                      alignItems: "flex-start",
                     }}
                   >
-                    <button
-                      onClick={() => copyText(item.keyword || "")}
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 800, fontSize: 17 }}>
+                        {item.title}
+                      </div>
+                      <div style={{ marginTop: 8, opacity: 0.75 }}>
+                        <strong>Keyword:</strong> {item.keyword}
+                      </div>
+                      <div style={{ marginTop: 6, opacity: 0.75 }}>
+                        <strong>Intent:</strong> {item.intent}
+                      </div>
+                      <div style={{ marginTop: 6, opacity: 0.75 }}>
+                        <strong>Slug:</strong> {item.slug}
+                      </div>
+                      <div style={{ marginTop: 6, opacity: 0.75 }}>
+                        <strong>Angle:</strong> {item.angle}
+                      </div>
+                    </div>
+
+                    <div
                       style={{
-                        height: 38,
-                        borderRadius: 10,
-                        border: "1px solid rgba(255,255,255,0.12)",
-                        background: "transparent",
-                        color: "inherit",
-                        cursor: "pointer",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 8,
+                        minWidth: 160,
                       }}
                     >
-                      Keyword Kopyala
-                    </button>
-                    <button
-                      onClick={() => copyText(item.title || "")}
-                      style={{
-                        height: 38,
-                        borderRadius: 10,
-                        border: "1px solid rgba(255,255,255,0.12)",
-                        background: "transparent",
-                        color: "inherit",
-                        cursor: "pointer",
-                      }}
-                    >
-                      Başlık Kopyala
-                    </button>
-                    <button
-                      onClick={() =>
-                        copyText(
-                          JSON.stringify(
-                            {
-                              keyword: item.keyword,
-                              title: item.title,
-                              intent: item.intent,
-                              slug: item.slug,
-                              angle: item.angle,
-                            },
-                            null,
-                            2
-                          )
-                        )
-                      }
-                      style={{
-                        height: 38,
-                        borderRadius: 10,
-                        border: "1px solid rgba(255,255,255,0.12)",
-                        background: "transparent",
-                        color: "inherit",
-                        cursor: "pointer",
-                      }}
-                    >
-                      JSON Kopyala
-                    </button>
+                      <button
+                        onClick={() => copyText(item.keyword || "")}
+                        style={{
+                          height: 38,
+                          borderRadius: 10,
+                          border: "1px solid rgba(255,255,255,0.12)",
+                          background: "transparent",
+                          color: "inherit",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Keyword Kopyala
+                      </button>
+
+                      <button
+                        onClick={() => copyText(item.title || "")}
+                        style={{
+                          height: 38,
+                          borderRadius: 10,
+                          border: "1px solid rgba(255,255,255,0.12)",
+                          background: "transparent",
+                          color: "inherit",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Başlık Kopyala
+                      </button>
+
+                      <button
+                        onClick={() => handleGenerateArticle(item)}
+                        disabled={generateLoadingSlug === key}
+                        style={{
+                          height: 38,
+                          borderRadius: 10,
+                          border: "none",
+                          background: "rgba(255,255,255,0.12)",
+                          color: "inherit",
+                          cursor:
+                            generateLoadingSlug === key ? "not-allowed" : "pointer",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {generateLoadingSlug === key
+                          ? "Üretiliyor..."
+                          : "Makale Üret"}
+                      </button>
+                    </div>
                   </div>
+
+                  {generateError ? (
+                    <div
+                      style={{
+                        marginTop: 14,
+                        padding: 12,
+                        borderRadius: 12,
+                        background: "rgba(255,0,0,0.08)",
+                        border: "1px solid rgba(255,0,0,0.18)",
+                      }}
+                    >
+                      {generateError}
+                    </div>
+                  ) : null}
+
+                  {generated ? (
+                    <div
+                      style={{
+                        marginTop: 16,
+                        padding: 16,
+                        borderRadius: 14,
+                        border: "1px solid rgba(255,255,255,0.08)",
+                        background: "rgba(0,0,0,0.12)",
+                      }}
+                    >
+                      <div style={{ fontWeight: 800, fontSize: 18 }}>
+                        {generated?.writer?.title || item.title}
+                      </div>
+
+                      <div style={{ marginTop: 10, opacity: 0.85 }}>
+                        <strong>SEO Başlık:</strong>{" "}
+                        {generated?.seo?.seo_title || "-"}
+                      </div>
+                      <div style={{ marginTop: 8, opacity: 0.85 }}>
+                        <strong>Meta:</strong>{" "}
+                        {generated?.seo?.meta_description || "-"}
+                      </div>
+                      <div style={{ marginTop: 8, opacity: 0.85 }}>
+                        <strong>Slug:</strong> {generated?.seo?.slug || "-"}
+                      </div>
+
+                      <div style={{ marginTop: 16, fontWeight: 700 }}>
+                        Makale Önizleme
+                      </div>
+                      <pre
+                        style={{
+                          whiteSpace: "pre-wrap",
+                          marginTop: 10,
+                          padding: 14,
+                          borderRadius: 12,
+                          background: "rgba(255,255,255,0.04)",
+                          border: "1px solid rgba(255,255,255,0.06)",
+                          maxHeight: 340,
+                          overflow: "auto",
+                          fontFamily:
+                            'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                          fontSize: 13,
+                          lineHeight: 1.55,
+                        }}
+                      >
+                        {generatedArticle}
+                      </pre>
+
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: 10,
+                          flexWrap: "wrap",
+                          marginTop: 12,
+                        }}
+                      >
+                        <button
+                          onClick={() => copyText(generatedArticle)}
+                          style={{
+                            height: 38,
+                            padding: "0 14px",
+                            borderRadius: 10,
+                            border: "1px solid rgba(255,255,255,0.12)",
+                            background: "transparent",
+                            color: "inherit",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Markdown Kopyala
+                        </button>
+
+                        <button
+                          onClick={() =>
+                            copyText(
+                              JSON.stringify(
+                                {
+                                  writer: generated?.writer || {},
+                                  editor: generated?.editor || {},
+                                  finalizer: generated?.finalizer || {},
+                                  seo: generated?.seo || {},
+                                },
+                                null,
+                                2
+                              )
+                            )
+                          }
+                          style={{
+                            height: 38,
+                            padding: "0 14px",
+                            borderRadius: 10,
+                            border: "1px solid rgba(255,255,255,0.12)",
+                            background: "transparent",
+                            color: "inherit",
+                            cursor: "pointer",
+                          }}
+                        >
+                          JSON Kopyala
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       ) : null}
