@@ -3,6 +3,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const { runPipeline } = require("./orchestrator/pipeline");
 const { calculateSeoScore } = require("./utils/seoScore");
+const { runTopicCluster } = require("./agents/topicCluster");
 
 dotenv.config();
 
@@ -103,6 +104,43 @@ app.use((err, req, res, next) => {
       ok: false,
       error: err?.message || "Sunucu hatası"
     }));
+});
+
+
+app.post("/api/cluster", async (req, res) => {
+  try {
+    const {
+      keyword = "",
+      language = "Türkçe",
+      country = "Türkiye",
+      tone = "uzman"
+    } = req.body || {};
+
+    if (!keyword.trim()) {
+      return res.status(400).json({
+        ok: false,
+        error: "keyword zorunludur"
+      });
+    }
+
+    const result = await runTopicCluster({
+      keyword: keyword.trim(),
+      language,
+      country,
+      tone
+    });
+
+    return res.json({
+      ok: true,
+      result
+    });
+  } catch (error) {
+    console.error("Cluster API hatası:", error);
+    return res.status(500).json({
+      ok: false,
+      error: error.message || "Bilinmeyen hata"
+    });
+  }
 });
 
 app.listen(PORT, () => {
