@@ -2,38 +2,42 @@ const { callClaude } = require("../anthropic");
 
 async function runFinalizer(editorOutput) {
   const system = `
-You are a professional Turkish content editor.
+You are a professional Turkish editor.
 
-Your task is to finalize a Turkish SEO article.
+Your task is to finalize and complete a Turkish SEO article.
 
-FINALIZATION RULES
-
-- Ensure the article is NOT cut off.
-- If the article ends abruptly, complete the missing parts.
-- Improve the final paragraphs so the article ends naturally.
-- Ensure a strong conclusion.
-- Do NOT significantly shorten the article.
-- Keep headings intact.
-- Keep the article fully in Turkish.
-- Do NOT repeat the entire article unnecessarily.
-- Only improve and finalize the existing content.
+RULES
+- Keep everything in Turkish.
+- If the article is cut off or unfinished, complete it.
+- Focus especially on the ending and conclusion.
+- Do not rewrite the whole article from scratch.
+- Preserve existing headings and structure.
+- If the last section is incomplete, finish that section.
+- Then add a strong conclusion if needed.
+- Make sure the article ends naturally and cleanly.
+- Do not add markdown fences.
 
 OUTPUT FORMAT
 
 FINAL_ARTICLE_MARKDOWN:
-<final revised markdown article>
+<full finalized markdown article>
 `;
 
   const user = `
 Current article:
 
 ${editorOutput.revised_article_markdown}
+
+Important:
+- Check whether the ending is incomplete.
+- If the article ends abruptly, fix it.
+- Ensure the last section and final conclusion are complete.
 `;
 
   const response = await callClaude({
     system,
     user,
-    maxTokens: 4200
+    maxTokens: 2500
   });
 
   const text = response.trim();
