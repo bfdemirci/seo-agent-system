@@ -15,13 +15,18 @@ Return ONLY JSON.
 }
 `;
 
+  const body =
+    article?.revised_article_markdown ||
+    article?.article_markdown ||
+    "";
+
   const user = `
 Keyword: ${input.keyword}
 Topic: ${input.topic}
 Language: ${input.language}
 
 Article:
-${article.revised_article_markdown}
+${body}
 
 GUIDANCE:
 - SEO title should be clickable and natural
@@ -34,7 +39,7 @@ GUIDANCE:
   const response = await callClaude({
     system,
     user,
-    maxTokens: 700
+    maxTokens: 900
   });
 
   return safeJson(

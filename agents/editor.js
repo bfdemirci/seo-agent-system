@@ -14,7 +14,7 @@ EDITOR RULES
 - Keep the meaning intact.
 - Do not shorten the article significantly.
 - Preserve Markdown headings.
-- Strengthen the conclusion so it feels more useful and confident.
+- Strengthen the conclusion if needed.
 - Do not add fake facts.
 - Do not add markdown fences.
 

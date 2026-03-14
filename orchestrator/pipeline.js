@@ -1,7 +1,5 @@
 const { runPlanner } = require("../agents/planner");
-const { runResearch } = require("../agents/research");
-const { runSerpAnalyzer } = require("../agents/serpAnalyzer");
-const { runBrief } = require("../agents/brief");
+const { runStrategy } = require("../agents/strategy");
 const { runWriter } = require("../agents/writer");
 const { runEditor } = require("../agents/editor");
 const { runFinalizer } = require("../agents/finalizer");
@@ -29,45 +27,30 @@ async function runPipeline(input) {
     "planner"
   );
 
-  const researchOutput = await safeRun(
-    runResearch,
+  const strategyOutput = await safeRun(
+    runStrategy,
     [input, plannerOutput],
-    {},
-    "research"
-  );
-
-  const serpOutput = await safeRun(
-    runSerpAnalyzer,
-    [input, plannerOutput, researchOutput],
     {
-      search_intent: "",
-      average_word_count_range: "",
-      common_headings: [],
+      primary_intent: "",
+      target_audience: "",
+      recommended_title_direction: "",
+      recommended_sections: [],
+      questions: [],
       must_cover_topics: [],
       content_gaps: [],
-      recommended_outline: []
+      style_notes: [],
+      recommended_word_range: ""
     },
-    "serp"
-  );
-
-  const briefOutput = await safeRun(
-    runBrief,
-    [input, plannerOutput, researchOutput, serpOutput],
-    {
-      title_options: [],
-      primary_intent: "",
-      recommended_sections: [],
-      questions: []
-    },
-    "brief"
+    "strategy"
   );
 
   const writerOutput = await safeRun(
     runWriter,
-    [input, briefOutput],
+    [input, strategyOutput],
     {
       title: input.keyword,
-      article_markdown: ""
+      article_markdown: "",
+      word_count: 0
     },
     "writer"
   );
@@ -113,9 +96,7 @@ async function runPipeline(input) {
 
   return {
     planner: plannerOutput,
-    research: researchOutput,
-    serp: serpOutput,
-    brief: briefOutput,
+    strategy: strategyOutput,
     writer: writerOutput,
     editor: editorOutput,
     finalizer: finalizerOutput,

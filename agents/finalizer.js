@@ -19,7 +19,7 @@ RULES
 - Only complete the unfinished ending if needed.
 - Keep everything in Turkish.
 - If the article already ends naturally, return it unchanged.
-- If the article is cut off, complete the last unfinished section.
+- If the ending is cut off, complete the last unfinished section.
 - Add a short strong conclusion only if necessary.
 - Do not add markdown fences.
 
