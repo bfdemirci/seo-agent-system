@@ -1,5 +1,6 @@
 const { runPlanner } = require("../agents/planner");
 const { runResearch } = require("../agents/research");
+const { runSerpAnalyzer } = require("../agents/serpAnalyzer");
 const { runBrief } = require("../agents/brief");
 const { runWriter } = require("../agents/writer");
 const { runEditor } = require("../agents/editor");
@@ -35,9 +36,23 @@ async function runPipeline(input) {
     "research"
   );
 
+  const serpOutput = await safeRun(
+    runSerpAnalyzer,
+    [input, plannerOutput, researchOutput],
+    {
+      search_intent: "",
+      average_word_count_range: "",
+      common_headings: [],
+      must_cover_topics: [],
+      content_gaps: [],
+      recommended_outline: []
+    },
+    "serp"
+  );
+
   const briefOutput = await safeRun(
     runBrief,
-    [input, plannerOutput, researchOutput],
+    [input, plannerOutput, researchOutput, serpOutput],
     {
       title_options: [],
       primary_intent: "",
@@ -77,7 +92,7 @@ async function runPipeline(input) {
 
   const seoOutput = await safeRun(
     runSeoOptimizer,
-    [input, { article_markdown: finalizerOutput.final_article_markdown }],
+    [input, { revised_article_markdown: finalizerOutput.final_article_markdown }],
     {
       seo_title: "",
       meta_description: "",
@@ -99,6 +114,7 @@ async function runPipeline(input) {
   return {
     planner: plannerOutput,
     research: researchOutput,
+    serp: serpOutput,
     brief: briefOutput,
     writer: writerOutput,
     editor: editorOutput,
